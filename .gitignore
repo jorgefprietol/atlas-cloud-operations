@@ -1,0 +1,17 @@
+.env
+**/bin/
+**/obj/
+**/target/
+**/node_modules/
+**/dist/
+**/.terraform/
+*.tfstate*
+*.tfplan
+*.tfvars
+!*.tfvars.example
+test-results/
+artifacts/
+*.log
+*.tsbuildinfo
+.DS_Store
+**/__pycache__/

@@ -1,0 +1,110 @@
+openapi: 3.0.3
+info:
+  title: Atlas Cloud Operations API
+  version: 1.0.0
+  description: Authenticated operational policy requests, asynchronous decisions and account-scoped audit.
+servers:
+  - url: http://127.0.0.1:18096
+security:
+  - bearerAuth: []
+paths:
+  /health/live:
+    get:
+      security: []
+      responses:
+        '200': {description: Process is alive}
+  /health/ready:
+    get:
+      security: []
+      responses:
+        '200': {description: Database is reachable}
+        '503': {description: Database unavailable}
+  /api/requests:
+    get:
+      summary: Latest 100 requests owned by the authenticated identity
+      responses:
+        '200':
+          description: Account-scoped operations
+          content:
+            application/json:
+              schema: {type: array, items: {$ref: '#/components/schemas/Operation'}}
+        '401': {description: Invalid or missing access token}
+    post:
+      summary: Queue an operational policy evaluation
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          required: true
+          schema: {type: string, minLength: 8, maxLength: 128}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: '#/components/schemas/OperationInput'}
+            example: {title: Monthly audit backup, kind: backup, region: us-east-1, classification: confidential, retentionDays: 365}
+      responses:
+        '201':
+          description: New request accepted
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Operation'}
+        '200': {description: Idempotent replay of the same payload}
+        '400': {description: Invalid input or idempotency key}
+        '401': {description: Invalid or missing access token}
+        '409': {description: Key reused with a different payload}
+  /api/requests/{id}:
+    get:
+      parameters:
+        - {$ref: '#/components/parameters/id'}
+      responses:
+        '200':
+          description: Owned request
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Operation'}
+        '401': {description: Invalid or missing access token}
+        '404': {description: Unknown request or request owned by another identity}
+  /api/requests/{id}/audit:
+    get:
+      parameters:
+        - {$ref: '#/components/parameters/id'}
+      responses:
+        '200':
+          description: Ordered audit records; empty when unknown or not owned
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    action: {type: string, enum: [requested, validated, rejected]}
+                    detail: {type: string}
+                    createdAt: {type: string, format: date-time}
+        '401': {description: Invalid or missing access token}
+components:
+  securitySchemes:
+    bearerAuth: {type: http, scheme: bearer, bearerFormat: Cognito access token}
+  parameters:
+    id: {in: path, name: id, required: true, schema: {type: string, format: uuid}}
+  schemas:
+    OperationInput:
+      type: object
+      required: [title, kind, region, classification, retentionDays]
+      properties:
+        title: {type: string, minLength: 1, maxLength: 120}
+        kind: {type: string, enum: [backup, data-export, service-release]}
+        region: {type: string, enum: [us-east-1, us-west-2, eu-west-1]}
+        classification: {type: string, enum: [internal, confidential]}
+        retentionDays: {type: integer, minimum: 1, maximum: 3650}
+    Operation:
+      allOf:
+        - {$ref: '#/components/schemas/OperationInput'}
+        - type: object
+          properties:
+            id: {type: string, format: uuid}
+            status: {type: string, enum: [queued, validated, rejected]}
+            decision: {type: string, nullable: true}
+            reportKey: {type: string, nullable: true}
+            createdAt: {type: string, format: date-time}
+            completedAt: {type: string, format: date-time, nullable: true}

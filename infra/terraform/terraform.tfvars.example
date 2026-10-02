@@ -1,0 +1,12 @@
+region                   = "us-east-1"
+name                     = "atlas"
+environment              = "production"
+github_repository        = "jorgefprietol/atlas-cloud-operations"
+api_domain               = "api-atlas.example.com"
+route53_zone_id           = "Z_REPLACE_WITH_YOUR_HOSTED_ZONE"
+alb_certificate_arn      = "arn:aws:acm:us-east-1:123456789012:certificate/REPLACE"
+github_oidc_provider_arn = "arn:aws:iam::123456789012:oidc-provider/token.actions.githubusercontent.com"
+api_image                = "123456789012.dkr.ecr.us-east-1.amazonaws.com/atlas-production-api@sha256:REPLACE_WITH_64_HEX_CHARACTERS"
+worker_image             = "123456789012.dkr.ecr.us-east-1.amazonaws.com/atlas-production-worker@sha256:REPLACE_WITH_64_HEX_CHARACTERS"
+desired_count            = 2
+enable_guardduty         = false

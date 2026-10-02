@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OperationRequested v1",
+  "type": "object",
+  "required": ["eventId", "operationId", "version", "type"],
+  "additionalProperties": false,
+  "properties": {
+    "eventId": {"type": "string", "format": "uuid"},
+    "operationId": {"type": "string", "format": "uuid"},
+    "version": {"const": 1},
+    "type": {"const": "OperationRequested"}
+  }
+}

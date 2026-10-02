@@ -1,0 +1,85 @@
+name: Deploy AWS
+on:
+  workflow_dispatch:
+    inputs:
+      release_sha:
+        description: Full commit SHA from a successful Quality and Containers run
+        required: true
+        type: string
+permissions:
+  contents: read
+  actions: read
+  packages: read
+concurrency:
+  group: aws-production
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    environment: production
+    permissions:
+      contents: read
+      actions: read
+      packages: read
+      id-token: write
+    env:
+      RELEASE_SHA: ${{ inputs.release_sha }}
+      AWS_REGION: ${{ vars.AWS_REGION }}
+      AWS_ACCOUNT_ID: ${{ vars.AWS_ACCOUNT_ID }}
+      ECS_CLUSTER: ${{ vars.ECS_CLUSTER }}
+      API_SERVICE: ${{ vars.API_SERVICE }}
+      WORKER_SERVICE: ${{ vars.WORKER_SERVICE }}
+      API_TASK_FAMILY: ${{ vars.API_TASK_FAMILY }}
+      WORKER_TASK_FAMILY: ${{ vars.WORKER_TASK_FAMILY }}
+      API_ECR: ${{ vars.API_ECR }}
+      WORKER_ECR: ${{ vars.WORKER_ECR }}
+      FRONTEND_BUCKET: ${{ vars.FRONTEND_BUCKET }}
+      CLOUDFRONT_ID: ${{ vars.CLOUDFRONT_ID }}
+      FRONTEND_CONFIG: ${{ vars.FRONTEND_CONFIG }}
+      FRONTEND_URL: ${{ vars.FRONTEND_URL }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: Validate release and configuration
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [[ "$RELEASE_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo 'Full SHA required'; exit 1; }
+          for name in AWS_REGION AWS_ACCOUNT_ID ECS_CLUSTER API_SERVICE WORKER_SERVICE API_TASK_FAMILY WORKER_TASK_FAMILY API_ECR WORKER_ECR FRONTEND_BUCKET CLOUDFRONT_ID FRONTEND_CONFIG FRONTEND_URL; do
+            [[ -n "${!name}" ]] || { echo "Missing environment variable: $name"; exit 1; }
+          done
+          gh run list --workflow ci.yml --commit "$RELEASE_SHA" --branch main --event push --status success --json conclusion --jq 'length' | grep -Eq '^[1-9][0-9]*$'
+      - name: Check out verified release
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ inputs.release_sha }}
+      - uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
+        with:
+          role-to-assume: ${{ vars.AWS_DEPLOY_ROLE_ARN }}
+          aws-region: ${{ vars.AWS_REGION }}
+          role-session-name: atlas-${{ github.run_id }}
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Promote verified images to ECR and ECS
+        run: bash scripts/deploy-ecs.sh
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Publish React console
+        run: |
+          cd web
+          npm ci
+          npm run build
+          printf '%s' "$FRONTEND_CONFIG" | jq -e . > dist/config.json
+          aws s3 sync dist/ "s3://$FRONTEND_BUCKET/" --exclude 'index.html' --exclude 'config.json' --cache-control 'public,max-age=31536000,immutable'
+          aws s3 cp dist/index.html "s3://$FRONTEND_BUCKET/index.html" --cache-control no-store --content-type text/html
+          aws s3 cp dist/config.json "s3://$FRONTEND_BUCKET/config.json" --cache-control no-store --content-type application/json
+          aws cloudfront create-invalidation --distribution-id "$CLOUDFRONT_ID" --paths /index.html /config.json / /auth/callback
+      - name: Deployment health
+        run: curl --fail --retry 12 --retry-delay 10 --retry-all-errors "$FRONTEND_URL/health/ready"

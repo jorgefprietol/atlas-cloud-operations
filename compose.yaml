@@ -1,0 +1,101 @@
+name: atlas-cloud-operations
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: atlas
+      POSTGRES_USER: atlas
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?Run python scripts/init-env.py}
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: [CMD-SHELL, "pg_isready -U atlas -d atlas"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  localstack:
+    image: localstack/localstack:4.7.0
+    environment:
+      SERVICES: sns,sqs,s3
+      AWS_DEFAULT_REGION: us-east-1
+      SQS_ENDPOINT_STRATEGY: path
+    volumes:
+      - ./scripts/localstack-init.sh:/etc/localstack/init/ready.d/init.sh:ro
+    healthcheck:
+      test: [CMD-SHELL, "test -f /tmp/atlas-ready"]
+      interval: 5s
+      timeout: 3s
+      retries: 40
+  api:
+    build:
+      context: .
+      dockerfile: services/api/Dockerfile
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+      DATABASE_URL: Host=postgres;Database=atlas;Username=atlas;Password=${DB_PASSWORD}
+      DEV_API_TOKEN: ${DEV_API_TOKEN:?Run python scripts/init-env.py}
+      AWS_ENDPOINT_URL: http://localstack:4566
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_REGION: us-east-1
+      SNS_TOPIC_ARN: arn:aws:sns:us-east-1:000000000000:atlas-operations
+    depends_on:
+      postgres: {condition: service_healthy}
+      localstack: {condition: service_healthy}
+    healthcheck:
+      test: [CMD-SHELL, "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8080; printf \"GET /health/ready HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n\" >&3; cat <&3 | head -1 | grep -q 200'"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  worker:
+    build:
+      context: .
+      dockerfile: services/worker/Dockerfile
+    environment:
+      JDBC_URL: jdbc:postgresql://postgres:5432/atlas
+      DB_USER: atlas
+      DB_PASSWORD: ${DB_PASSWORD}
+      AWS_ENDPOINT_URL: http://localstack:4566
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_REGION: us-east-1
+      SQS_QUEUE_URL: http://localstack:4566/queue/us-east-1/000000000000/atlas-operations
+      REPORT_BUCKET: atlas-reports-local
+    depends_on:
+      api: {condition: service_healthy}
+    healthcheck:
+      test: [CMD-SHELL, "bash -c 'exec 3<>/dev/tcp/127.0.0.1/8081; printf \"GET /actuator/health/readiness HTTP/1.0\\r\\nHost: localhost\\r\\n\\r\\n\" >&3; cat <&3 | head -1 | grep -q 200'"]
+      interval: 5s
+      timeout: 3s
+      retries: 40
+      start_period: 20s
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+  web:
+    build:
+      context: .
+      dockerfile: web/Dockerfile
+    ports: ["127.0.0.1:18096:8080"]
+    depends_on:
+      api: {condition: service_healthy}
+    healthcheck:
+      test: [CMD-SHELL, "wget -q -O /dev/null http://127.0.0.1:8080/"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    read_only: true
+    tmpfs: [/tmp]
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+volumes:
+  postgres-data:
+networks:
+  default:
+    ipam:
+      config:
+        - subnet: ${ATLAS_SUBNET:-10.253.96.0/24}
