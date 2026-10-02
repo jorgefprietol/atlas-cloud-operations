@@ -22,9 +22,9 @@
       },
       "Npgsql": {
         "type": "Direct",
-        "requested": "[8.0.8, )",
-        "resolved": "8.0.8",
-        "contentHash": "1g7tA1easureueqyS5SqJtojI7FwEdw50UYTh0l576iWZNnyRyAVfFi1bJp4BzO8IwYodP8YCRp6ThNQvvBn8A=="
+        "requested": "[10.0.3, )",
+        "resolved": "10.0.3",
+        "contentHash": "7nb5YzXuvWWJxB0J8DiyL3we+X4FOctZrt0fIBnucOIaIevFEEwGQVZKtiu9olXdlNAK1eNgqSral6r/jlhI4w=="
       },
       "AWSSDK.Core": {
         "type": "Transitive",
