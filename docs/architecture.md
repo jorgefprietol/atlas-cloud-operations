@@ -28,6 +28,8 @@ The SPA uses authorization code plus PKCE, without a client secret. The access t
 
 Two availability zones host private Fargate tasks and an encrypted Multi-AZ RDS database. Each zone has a NAT gateway. S3 has a gateway endpoint. Public ALB HTTPS is protected by WAF and a CloudFront origin header. CloudFront serves a private S3 frontend through Origin Access Control and forwards API authorization with caching disabled. RDS connections validate TLS certificates against the official bundled CA.
 
+The application images declare `/tmp` volumes with ownership suitable for their non-root users, allowing Fargate's ephemeral bind mount to remain writable while the root filesystem is read-only. See [ECS bind mount permissions](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/bind-mounts.html).
+
 Separate task IAM roles grant SNS publishing to the API and SQS consumption/S3 report writes to the worker. The ECS execution role reads the RDS-managed password from Secrets Manager. The deployment role trusts only the named repository's `production` GitHub environment and can promote images, update ECS task definitions and publish frontend artifacts.
 
 ## Operational limits

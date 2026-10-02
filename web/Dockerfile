@@ -1,6 +1,7 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY web/package*.json ./
+COPY web/.npmrc ./
 RUN npm ci
 COPY web/ ./
 RUN npm run build

@@ -6,9 +6,10 @@ COPY services/worker/src ./src
 RUN mvn -B package -DskipTests
 FROM eclipse-temurin:21-jre-jammy
 WORKDIR /app
-RUN groupadd --gid 10001 atlas && useradd --uid 10001 --gid atlas --no-create-home atlas
+RUN groupadd --gid 10001 atlas && useradd --uid 10001 --gid atlas --no-create-home atlas && chown atlas:atlas /tmp
 COPY --from=build /src/target/policy-worker-1.0.0.jar app.jar
 COPY infra/certs/rds-ca.pem ./rds-ca.pem
 USER 10001:10001
+VOLUME ["/tmp"]
 EXPOSE 8081
 ENTRYPOINT ["java", "-XX:MaxRAMPercentage=70", "-jar", "app.jar"]
