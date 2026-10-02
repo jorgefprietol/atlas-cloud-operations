@@ -40,7 +40,7 @@ jobs:
       FRONTEND_CONFIG: ${{ vars.FRONTEND_CONFIG }}
       FRONTEND_URL: ${{ vars.FRONTEND_URL }}
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Validate release and configuration
         env:
           GH_TOKEN: ${{ github.token }}
@@ -51,7 +51,7 @@ jobs:
           done
           gh run list --workflow ci.yml --commit "$RELEASE_SHA" --branch main --event push --status success --json conclusion --jq 'length' | grep -Eq '^[1-9][0-9]*$'
       - name: Check out verified release
-        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: ${{ inputs.release_sha }}
       - uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a # v4
