@@ -20,7 +20,7 @@ public class OperationProcessor {
     public OperationProcessor(JdbcTemplate db, S3Client s3, ObjectMapper json, @Value("${atlas.report-bucket}") String bucket) {
         this.db = db; this.s3 = s3; this.json = json; this.bucket = bucket;
     }
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void process(String body) throws Exception {
         var event = json.readTree(body);
         if (event.path("version").asInt() != 1 || !event.path("type").asText().equals("OperationRequested"))

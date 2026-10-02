@@ -5,7 +5,7 @@ COPY web/.npmrc ./
 RUN npm ci
 COPY web/ ./
 RUN npm run build
-FROM nginxinc/nginx-unprivileged:1.28-alpine
+FROM nginxinc/nginx-unprivileged:1.30-alpine3.24
 USER root
 RUN apk upgrade --no-cache
 USER 101
