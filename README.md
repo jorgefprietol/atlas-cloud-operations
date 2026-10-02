@@ -8,6 +8,10 @@ Proyecto de ingeniería de **Jorge Prieto**, con infraestructura AWS declarativa
 
 ## Producto
 
+![Consola Atlas con solicitudes evaluadas](docs/images/console.jpg)
+
+Vista del entorno local: solicitudes registradas desde la consola y evaluadas por el servicio Java.
+
 - Consola web con indicadores reales, búsqueda, filtros, registro de solicitudes y detalle de auditoría.
 - API autenticada con aislamiento por identidad, validación de entrada e idempotencia ante solicitudes concurrentes.
 - Transactional outbox: solicitud, auditoría y evento se registran en una transacción PostgreSQL.
