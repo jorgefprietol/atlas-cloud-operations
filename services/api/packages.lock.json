@@ -4,11 +4,11 @@
     "net10.0": {
       "AWSSDK.SimpleNotificationService": {
         "type": "Direct",
-        "requested": "[3.7.400.9, )",
-        "resolved": "3.7.400.9",
-        "contentHash": "ygxhaGZ58BqnGvNcO1Q3QfRyDPNQAIIO4n6qwg3ASeL803bNFZxQa1Zng0sa16lNS6vdmMZ0sEMv3hRPWCTsxA==",
+        "requested": "[4.0.100.22, )",
+        "resolved": "4.0.100.22",
+        "contentHash": "C6lvrJ7Ba6nMbDu71RJenfkJALXJBn3ngd53N35jr6WrJZg1me49V9M/xJ95PzACRegVziCHJlAlQYdGniy1Ag==",
         "dependencies": {
-          "AWSSDK.Core": "[3.7.400.9, 4.0.0)"
+          "AWSSDK.Core": "[4.0.102.14, 5.0.0)"
         }
       },
       "Microsoft.AspNetCore.Authentication.JwtBearer": {
@@ -28,8 +28,8 @@
       },
       "AWSSDK.Core": {
         "type": "Transitive",
-        "resolved": "3.7.400.9",
-        "contentHash": "I5hCZ6IfEk/KDzyCOY6VDC4jPABEDbLKGAVQYbK1NKOnwga5LtLc3t6s0pwWoLno4MN5OrzGTgecoBcSW/tAJQ=="
+        "resolved": "4.0.102.14",
+        "contentHash": "pRYOOIyj40UdQ6G9iq8AOU30sFPqWS/umM/sFTmAl4n1S6AVbVa67DJpJTxD+9qJFqweHPcyVW7Qb4BbUBLJdg=="
       },
       "Microsoft.Bcl.Cryptography": {
         "type": "Transitive",
