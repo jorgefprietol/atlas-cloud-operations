@@ -4,11 +4,11 @@
     "net10.0": {
       "AWSSDK.SimpleNotificationService": {
         "type": "Direct",
-        "requested": "[3.7.400.9, )",
-        "resolved": "3.7.400.9",
-        "contentHash": "ygxhaGZ58BqnGvNcO1Q3QfRyDPNQAIIO4n6qwg3ASeL803bNFZxQa1Zng0sa16lNS6vdmMZ0sEMv3hRPWCTsxA==",
+        "requested": "[4.1.0, )",
+        "resolved": "4.1.0",
+        "contentHash": "muvPr2QP4uIiQnu8eaIFXSrIvuzqiJJd4UaOjFcB/QicDJXbQFllUakD8BpXlmKqcWl70/cfw3mWIWHDTUZsfQ==",
         "dependencies": {
-          "AWSSDK.Core": "[3.7.400.9, 4.0.0)"
+          "AWSSDK.Core": "[4.1.0, 5.0.0)"
         }
       },
       "Microsoft.AspNetCore.Authentication.JwtBearer": {
@@ -28,8 +28,17 @@
       },
       "AWSSDK.Core": {
         "type": "Transitive",
-        "resolved": "3.7.400.9",
-        "contentHash": "I5hCZ6IfEk/KDzyCOY6VDC4jPABEDbLKGAVQYbK1NKOnwga5LtLc3t6s0pwWoLno4MN5OrzGTgecoBcSW/tAJQ=="
+        "resolved": "4.1.0",
+        "contentHash": "7a4eOI65Mn4dzc9kmRiI+y3EiS80NCMnu/j3ZR9H2dyO3d597eVPVV+ClzSFXnQkA0r8n2iig+Vg/Q/mozh5MQ==",
+        "dependencies": {
+          "AWSSDK.Extensions.Numerics": "[4.1.0, 5.0.0)",
+          "System.IO.Hashing": "11.0.0"
+        }
+      },
+      "AWSSDK.Extensions.Numerics": {
+        "type": "Transitive",
+        "resolved": "4.1.0",
+        "contentHash": "hhoiXT1aUyVgIiQbQoqG3L1EEneqXDh2GKyH5izUlO6Rzi9GAAi8S6mlLiVwow23+EGg77zHjdmUi+ia3RSUTg=="
       },
       "Microsoft.Bcl.Cryptography": {
         "type": "Transitive",
@@ -91,6 +100,11 @@
           "Microsoft.IdentityModel.JsonWebTokens": "8.19.2",
           "Microsoft.IdentityModel.Tokens": "8.19.2"
         }
+      },
+      "System.IO.Hashing": {
+        "type": "Transitive",
+        "resolved": "11.0.0",
+        "contentHash": "U+Bv2qCYt6eONi+arSP0QIp4uTO6os6uceBsqiAwruZ+Wo2HrRhO/0tj38M9URJtS+4DhAtT3ka2TGNFYsnhyQ=="
       }
     }
   }
